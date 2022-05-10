@@ -24,6 +24,9 @@ import java.lang.annotation.Target;
 import org.springframework.context.annotation.Import;
 
 /**
+ * 聚合多个MapperScan注释的注解
+ * 可以原生使用，声明几个嵌套的MapperScan注解。还可以与Java 8对可重复注解的支持结合使用，其中MapperScan可以简单地在同一个方法上声明几次，隐式地生成这个注注解
+ *
  * The Container annotation that aggregates several {@link MapperScan} annotations.
  *
  * <p>

@@ -30,7 +30,10 @@ import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.context.annotation.Import;
 
 /**
- * 指定扫描包路径来批量注册映射器接口
+ * 指定扫描包路径来批量注册映射器接口。
+ * 当使用Java Config时，使用这个注解来注册MyBatis映射器接口。它通过MapperScannerRegistrar执行与MapperScannerConfigurer相同的工作。
+ * 可以指定basePackageClasses或basePackages(或其别名值)来定义要扫描的特定包。从2.0.4开始，如果没有定义特定的包，则扫描将从声明该注解的类的包中进行。
+ *
  *
  * Use this annotation to register MyBatis mapper interfaces when using Java Config. It performs when same work as
  * {@link MapperScannerConfigurer} via {@link MapperScannerRegistrar}.
