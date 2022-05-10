@@ -30,6 +30,11 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
+ * 处理JDBC连接的生命周期。它从Spring的事务管理器检索一个连接，并在不再需要它时将它返回给它
+ * mybatis整合Spring时通过@Transactional事物注解控制事物的提交与回滚
+ * 如果Spring的事务处理是活动的，它将不操作所有提交/回滚/关闭调用，假设Spring事务管理器将完成这项工作。
+ * 如果不是，它的行为将类似于JdbcTransaction
+ *
  * {@code SpringManagedTransaction} handles the lifecycle of a JDBC connection. It retrieves a connection from Spring's
  * transaction manager and returns it back to it when it is no longer needed.
  * <p>

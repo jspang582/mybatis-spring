@@ -25,6 +25,7 @@ import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.transaction.TransactionFactory;
 
 /**
+ * 创建SpringManagedTransaction实例的工厂
  * Creates a {@code SpringManagedTransaction}.
  *
  * @author Hunter Presnall
@@ -44,6 +45,7 @@ public class SpringManagedTransactionFactory implements TransactionFactory {
    */
   @Override
   public Transaction newTransaction(Connection conn) {
+    // Spring管理事物时需要指定数据源
     throw new UnsupportedOperationException("New Spring transactions require a DataSource");
   }
 

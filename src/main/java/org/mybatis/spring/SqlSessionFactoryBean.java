@@ -69,6 +69,9 @@ import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 import org.springframework.util.ClassUtils;
 
 /**
+ * 创建MyBatis SqlSessionFactory的FactoryBean。这是在Spring应用程序上下文中设置共享MyBatis SqlSessionFactory的通常方法，然后可以通过依赖注入将SqlSessionFactory传递给基于mybatis的dao。
+ * DataSourceTransactionManager或JtaTransactionManager都可以与SqlSessionFactory一起用于事务划分。JTA应该用于跨多个数据库的事务，或者当使用容器管理事务(CMT)时。
+ *
  * {@code FactoryBean} that creates a MyBatis {@code SqlSessionFactory}. This is the usual way to set up a shared
  * MyBatis {@code SqlSessionFactory} in a Spring application context; the SqlSessionFactory can then be passed to
  * MyBatis-based DAOs via dependency injection.
@@ -104,6 +107,7 @@ public class SqlSessionFactoryBean
 
   private TransactionFactory transactionFactory;
 
+  // 指定Configuration中的variables
   private Properties configurationProperties;
 
   private SqlSessionFactoryBuilder sqlSessionFactoryBuilder = new SqlSessionFactoryBuilder();
@@ -479,6 +483,7 @@ public class SqlSessionFactoryBean
   }
 
   /**
+   * SqlSessionFactoryBean初始化回调
    * {@inheritDoc}
    */
   @Override
@@ -492,6 +497,9 @@ public class SqlSessionFactoryBean
   }
 
   /**
+   * 创建SqlSessionFactory实例对象
+   * 默认实现使用标准的MyBatis XMLConfigBuilder API构建基于Reader的SqlSessionFactory实例。从1.3.0开始，可以直接指定一个Configuration实例(不需要配置文件)。
+   *
    * Build a {@code SqlSessionFactory} instance.
    *
    * The default implementation uses the standard MyBatis {@code XMLConfigBuilder} API to build a
@@ -507,17 +515,27 @@ public class SqlSessionFactoryBean
     final Configuration targetConfiguration;
 
     XMLConfigBuilder xmlConfigBuilder = null;
+    // 已经配置了Configuration
     if (this.configuration != null) {
       targetConfiguration = this.configuration;
+      // 如果原来的configuration没有配置variables，则设置新的configuration的variables属性为指定的configurationProperties
+      // 如果原来的configuration有配置variables，则在原来的configuration的variables属性上追加指定的configurationProperties
       if (targetConfiguration.getVariables() == null) {
         targetConfiguration.setVariables(this.configurationProperties);
       } else if (this.configurationProperties != null) {
         targetConfiguration.getVariables().putAll(this.configurationProperties);
       }
-    } else if (this.configLocation != null) {
+    }
+    // 没有配置Configuration
+
+    // 指定了configLocation
+    else if (this.configLocation != null) {
       xmlConfigBuilder = new XMLConfigBuilder(this.configLocation.getInputStream(), null, this.configurationProperties);
       targetConfiguration = xmlConfigBuilder.getConfiguration();
-    } else {
+    }
+
+    // 没有指定configLocation
+    else {
       LOGGER.debug(
           () -> "Property 'configuration' or 'configLocation' not specified, using default MyBatis Configuration");
       targetConfiguration = new Configuration();
@@ -625,11 +643,13 @@ public class SqlSessionFactoryBean
   }
 
   /**
+   * getBean(sqlSessionFactory)时回调的逻辑
    * {@inheritDoc}
    */
   @Override
   public SqlSessionFactory getObject() throws Exception {
     if (this.sqlSessionFactory == null) {
+      // 初始化
       afterPropertiesSet();
     }
 
