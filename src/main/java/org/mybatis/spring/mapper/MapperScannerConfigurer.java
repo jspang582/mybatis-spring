@@ -42,6 +42,18 @@ import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
 /**
+ * 从基础包开始递归搜索接口，并将它们注册为MapperFactoryBean。注意，只有具有至少一个方法的接口才会被注册;具体类将被忽略。
+ * basePackage属性可以包含多个包名，用逗号或分号分隔。
+ * 该类支持过滤通过指定标记接口或注解创建的映射器。annotationClass属性指定要搜索的注解。markerInterface属性指定要搜索的父接口。
+ * 如果指定了这两个属性，则为匹配其中一个条件的接口添加映射器。默认情况下，这两个属性为空，因此给定basePackage中的所有接口都作为映射器添加。
+ * 这个配置器为它创建的所有bean启用自动连接，以便它们自动与适当的SqlSessionFactory或SqlSessionTemplate连接。但是，如果应用程序中有多个SqlSessionFactory，则不能使用自动装配。
+ * 在这种情况下，必须显式指定通过bean name属性使用的SqlSessionFactory或SqlSessionTemplate。
+ * 使用Bean名称而不是实际对象，因为Spring在处理该类之后才初始化属性占位符。
+ * 传入一个实际的对象可能需要占位符(例如DB用户密码)将会失败。
+ * 使用bean名称将实际的对象创建推迟到启动过程的后期，在所有占位符替换完成之后。但是，请注意，此配置程序不支持其自身属性的属性占位符。
+ * basePackage和bean name属性都支持${property}样式替换
+ *
+ *
  * BeanDefinitionRegistryPostProcessor that searches recursively starting from a base package for interfaces and
  * registers them as {@code MapperFactoryBean}. Note that only interfaces with at least one method will be registered;
  * concrete classes will be ignored.

@@ -39,6 +39,8 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * 用于允许MyBatis映射器扫描的注解配置。
+ *
  * A {@link ImportBeanDefinitionRegistrar} to allow annotation configuration of MyBatis mapper scanning. Using
  * an @Enable annotation allows beans to be registered via @Component configuration, whereas implementing
  * {@code BeanDefinitionRegistryPostProcessor} will work for XML configuration.
@@ -77,42 +79,56 @@ public class MapperScannerRegistrar implements ImportBeanDefinitionRegistrar, Re
     }
   }
 
+
+  /**
+   * 将MapperScannerConfigurer注册成为一个bean进行属性赋值，值来源就是注解中的值
+   */
   void registerBeanDefinitions(AnnotationMetadata annoMeta, AnnotationAttributes annoAttrs,
       BeanDefinitionRegistry registry, String beanName) {
 
+    // 注册MapperScannerConfigurer bean定义
     BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MapperScannerConfigurer.class);
+
+    // 设置MapperScannerConfigurer中processPropertyPlaceHolders属性值为true
     builder.addPropertyValue("processPropertyPlaceHolders", true);
 
+    // 设置MapperScannerConfigurer中annotationClass属性值为注解中annotationClass对应的值
     Class<? extends Annotation> annotationClass = annoAttrs.getClass("annotationClass");
     if (!Annotation.class.equals(annotationClass)) {
       builder.addPropertyValue("annotationClass", annotationClass);
     }
 
+    // 设置MapperScannerConfigurer中markerInterface属性值为注解中markerInterface对应的值
     Class<?> markerInterface = annoAttrs.getClass("markerInterface");
     if (!Class.class.equals(markerInterface)) {
       builder.addPropertyValue("markerInterface", markerInterface);
     }
 
+    // 设置MapperScannerConfigurer中nameGenerator属性值为注解中nameGenerator对应的值的实例对象
     Class<? extends BeanNameGenerator> generatorClass = annoAttrs.getClass("nameGenerator");
     if (!BeanNameGenerator.class.equals(generatorClass)) {
       builder.addPropertyValue("nameGenerator", BeanUtils.instantiateClass(generatorClass));
     }
 
+    // 设置MapperScannerConfigurer中mapperFactoryBeanClass属性值为注解中factoryBean对应的class
     Class<? extends MapperFactoryBean> mapperFactoryBeanClass = annoAttrs.getClass("factoryBean");
     if (!MapperFactoryBean.class.equals(mapperFactoryBeanClass)) {
       builder.addPropertyValue("mapperFactoryBeanClass", mapperFactoryBeanClass);
     }
 
+    // 设置MapperScannerConfigurer中sqlSessionTemplateBeanName属性值为注解中sqlSessionTemplateRef对应的值
     String sqlSessionTemplateRef = annoAttrs.getString("sqlSessionTemplateRef");
     if (StringUtils.hasText(sqlSessionTemplateRef)) {
       builder.addPropertyValue("sqlSessionTemplateBeanName", annoAttrs.getString("sqlSessionTemplateRef"));
     }
 
+    // 设置MapperScannerConfigurer中sqlSessionFactoryBeanName属性值为注解中sqlSessionFactoryRef对应的值
     String sqlSessionFactoryRef = annoAttrs.getString("sqlSessionFactoryRef");
     if (StringUtils.hasText(sqlSessionFactoryRef)) {
       builder.addPropertyValue("sqlSessionFactoryBeanName", annoAttrs.getString("sqlSessionFactoryRef"));
     }
 
+    // 扫描包集合，把注解中value、basePackages、basePackageClasses对应的值都加进去
     List<String> basePackages = new ArrayList<>();
     basePackages.addAll(
         Arrays.stream(annoAttrs.getStringArray("value")).filter(StringUtils::hasText).collect(Collectors.toList()));
@@ -120,28 +136,34 @@ public class MapperScannerRegistrar implements ImportBeanDefinitionRegistrar, Re
     basePackages.addAll(Arrays.stream(annoAttrs.getStringArray("basePackages")).filter(StringUtils::hasText)
         .collect(Collectors.toList()));
 
+    // 把basePackageClasses指定的class所在包作为扫描包
     basePackages.addAll(Arrays.stream(annoAttrs.getClassArray("basePackageClasses")).map(ClassUtils::getPackageName)
         .collect(Collectors.toList()));
 
+    // 如果没有指定任何扫描包，则把注解所在包作为扫描包
     if (basePackages.isEmpty()) {
       basePackages.add(getDefaultBasePackage(annoMeta));
     }
 
+    // 设置MapperScannerConfigurer中lazyInitialization属性值为注解中lazyInitialization对应的值
     String lazyInitialization = annoAttrs.getString("lazyInitialization");
     if (StringUtils.hasText(lazyInitialization)) {
       builder.addPropertyValue("lazyInitialization", lazyInitialization);
     }
 
+    // 设置MapperScannerConfigurer中defaultScope属性值为注解中defaultScope对应的值
     String defaultScope = annoAttrs.getString("defaultScope");
     if (!AbstractBeanDefinition.SCOPE_DEFAULT.equals(defaultScope)) {
       builder.addPropertyValue("defaultScope", defaultScope);
     }
 
+    // 设置MapperScannerConfigurer中basePackage属性值为之前的扫描包
     builder.addPropertyValue("basePackage", StringUtils.collectionToCommaDelimitedString(basePackages));
 
     // for spring-native
     builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
+    // 将MapperScannerConfigurer注册成bean
     registry.registerBeanDefinition(beanName, builder.getBeanDefinition());
 
   }
@@ -155,6 +177,7 @@ public class MapperScannerRegistrar implements ImportBeanDefinitionRegistrar, Re
   }
 
   /**
+   * 支持@MapperScans注解的配置
    * A {@link MapperScannerRegistrar} for {@link MapperScans}.
    *
    * @since 2.0.0
@@ -167,6 +190,7 @@ public class MapperScannerRegistrar implements ImportBeanDefinitionRegistrar, Re
     public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
       AnnotationAttributes mapperScansAttrs = AnnotationAttributes
           .fromMap(importingClassMetadata.getAnnotationAttributes(MapperScans.class.getName()));
+      // 遍历MapperScans中所有MapperScan信息并注册映射器接口的bean定义
       if (mapperScansAttrs != null) {
         AnnotationAttributes[] annotations = mapperScansAttrs.getAnnotationArray("value");
         for (int i = 0; i < annotations.length; i++) {
