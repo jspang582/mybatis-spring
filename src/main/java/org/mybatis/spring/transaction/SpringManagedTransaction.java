@@ -69,12 +69,16 @@ public class SpringManagedTransaction implements Transaction {
   @Override
   public Connection getConnection() throws SQLException {
     if (this.connection == null) {
+      // 获取连接
       openConnection();
     }
     return this.connection;
   }
 
   /**
+   * 从Spring事务管理器获取连接，并发现该事务是否应该管理连接或将其提供给Spring。
+   * 它也读取自动提交设置，因为当使用Spring Transaction时，MyBatis认为自动提交总是false，并且总是调用提交/回滚，所以我们需要调用no-op。
+   *
    * Gets a connection from Spring transaction manager and discovers if this {@code Transaction} should manage
    * connection or let it to Spring.
    * <p>
@@ -82,6 +86,7 @@ public class SpringManagedTransaction implements Transaction {
    * false and will always call commit/rollback so we need to no-op that calls.
    */
   private void openConnection() throws SQLException {
+    // 从Spring事务管理器获取连接
     this.connection = DataSourceUtils.getConnection(this.dataSource);
     this.autoCommit = this.connection.getAutoCommit();
     this.isConnectionTransactional = DataSourceUtils.isConnectionTransactional(this.connection, this.dataSource);

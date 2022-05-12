@@ -120,6 +120,7 @@ public abstract class SqlSessionDaoSupport extends DaoSupport {
   }
 
   /**
+   * 检查sqlSessionTemplate或者sqlSessionTemplate是否配置了
    * {@inheritDoc}
    */
   @Override

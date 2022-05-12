@@ -57,6 +57,7 @@ public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements Factor
 
   private Class<T> mapperInterface;
 
+  // 设置为true后，如果映射器未注册，将添加到MyBatis 全局配置中
   private boolean addToConfig = true;
 
   public MapperFactoryBean() {
@@ -68,15 +69,18 @@ public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements Factor
   }
 
   /**
+   * 该类初始化完成后会回调回来，因为实现了InitializingBean接口
    * {@inheritDoc}
    */
   @Override
   protected void checkDaoConfig() {
     super.checkDaoConfig();
 
+    // 检查mapperInterface是否存在
     notNull(this.mapperInterface, "Property 'mapperInterface' is required");
 
     Configuration configuration = getSqlSession().getConfiguration();
+    // 如果映射器接口未注册并且addToConfig设置为true，则将映射器接口注册到mybatis全局配置中
     if (this.addToConfig && !configuration.hasMapper(this.mapperInterface)) {
       try {
         configuration.addMapper(this.mapperInterface);
@@ -94,6 +98,7 @@ public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements Factor
    */
   @Override
   public T getObject() throws Exception {
+    // 调用mybatis原生方法生成映射类接口的代理对象并注册到spring容器中
     return getSqlSession().getMapper(this.mapperInterface);
   }
 

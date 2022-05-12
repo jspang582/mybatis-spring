@@ -113,6 +113,8 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
   }
 
   /**
+   * 使用给定的SqlSessionFactory和ExecutorType构造一个Spring托管的SqlSession。
+   *
    * Constructs a Spring managed {@code SqlSession} with the given {@code SqlSessionFactory} and {@code ExecutorType}. A
    * custom {@code SQLExceptionTranslator} can be provided as an argument so any {@code PersistenceException} thrown by
    * MyBatis can be custom translated to a {@code RuntimeException} The {@code SQLExceptionTranslator} can also be null

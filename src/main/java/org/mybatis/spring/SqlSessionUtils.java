@@ -33,6 +33,9 @@ import org.springframework.transaction.support.TransactionSynchronizationAdapter
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
+ * 处理MyBatis SqlSession生命周期。
+ * 它可以注册并从Spring TransactionSynchronizationManager获取SqlSessions。如果没有活动事务，也可以工作。
+ *
  * Handles MyBatis SqlSession life cycle. It can register and get SqlSessions from Spring
  * {@code TransactionSynchronizationManager}. Also works if no transaction is active.
  *
