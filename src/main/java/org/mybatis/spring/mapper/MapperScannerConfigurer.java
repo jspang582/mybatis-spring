@@ -127,6 +127,7 @@ public class MapperScannerConfigurer
 
   private String beanName;
 
+  // 是否处理占位符
   private boolean processPropertyPlaceHolders;
 
   private BeanNameGenerator nameGenerator;
@@ -340,6 +341,7 @@ public class MapperScannerConfigurer
   }
 
   /**
+   * 用来检查basePackage属性是否有值，如果没值则会报错
    * {@inheritDoc}
    */
   @Override
@@ -356,6 +358,7 @@ public class MapperScannerConfigurer
   }
 
   /**
+   * 将该类注册成为一个bean后会回调该方法
    * {@inheritDoc}
    *
    * @since 1.0.2
@@ -366,6 +369,7 @@ public class MapperScannerConfigurer
       processPropertyPlaceHolders();
     }
 
+    // 通过扫描器注册包下的映射器接口 bean定义
     ClassPathMapperScanner scanner = new ClassPathMapperScanner(registry);
     scanner.setAddToConfig(this.addToConfig);
     scanner.setAnnotationClass(this.annotationClass);

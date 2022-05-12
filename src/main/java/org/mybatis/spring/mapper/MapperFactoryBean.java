@@ -24,6 +24,8 @@ import org.mybatis.spring.support.SqlSessionDaoSupport;
 import org.springframework.beans.factory.FactoryBean;
 
 /**
+ * 支持MyBatis映射器接口注入的FactoryBean。它可以通过SqlSessionFactory或预配置的SqlSessionTemplate进行设置。
+ *
  * BeanFactory that enables injection of MyBatis mapper interfaces. It can be set up with a SqlSessionFactory or a
  * pre-configured SqlSessionTemplate.
  * <p>

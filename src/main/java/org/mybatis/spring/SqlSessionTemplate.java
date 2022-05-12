@@ -42,7 +42,11 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.support.PersistenceExceptionTranslator;
 
 /**
- * 关联Spring事物管理的SqlSession
+ * 线程安全、Spring管理的、与Spring事务管理一起工作的SqlSession，以确保实际使用的SqlSession是与当前Spring事务关联的。
+ * 此外，它还管理会话生命周期，包括根据Spring事务配置在必要时关闭、提交或回滚会话。
+ * 模板需要一个SqlSessionFactory来创建SqlSession，并将其作为构造函数参数传递。还可以构造它来指示要使用的执行程序类型，如果没有，将使用会话工厂中定义的默认执行程序类型。
+ * 默认情况下，该模板使用MyBatisExceptionTranslator将MyBatis PersistenceExceptions转换为未检查的DataAccessExceptions。
+ * 因为SqlSessionTemplate是线程安全的，一个实例可以被所有dao共享;这样做还可以节省少量内存。
  *
  * Thread safe, Spring managed, {@code SqlSession} that works with Spring transaction management to ensure that that the
  * actual SqlSession used is the one associated with the current Spring transaction. In addition, it manages the session
@@ -130,6 +134,8 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
     this.sqlSessionFactory = sqlSessionFactory;
     this.executorType = executorType;
     this.exceptionTranslator = exceptionTranslator;
+
+    // 生成代理对象
     this.sqlSessionProxy = (SqlSession) newProxyInstance(SqlSessionFactory.class.getClassLoader(),
         new Class[] { SqlSession.class }, new SqlSessionInterceptor());
   }
@@ -416,6 +422,8 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
   }
 
   /**
+   * 调用SqlSession方法时的回调函数，代理需要将MyBatis方法调用路由到从Spring的事务管理器获得的适当的SqlSession
+   *
    * Proxy needed to route MyBatis method calls to the proper SqlSession got from Spring's Transaction Manager It also
    * unwraps exceptions thrown by {@code Method#invoke(Object, Object...)} to pass a {@code PersistenceException} to the
    * {@code PersistenceExceptionTranslator}.
@@ -426,6 +434,7 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
       SqlSession sqlSession = getSqlSession(SqlSessionTemplate.this.sqlSessionFactory,
           SqlSessionTemplate.this.executorType, SqlSessionTemplate.this.exceptionTranslator);
       try {
+        // 执行sqlSession的目标方法
         Object result = method.invoke(sqlSession, args);
         if (!isSqlSessionTransactional(sqlSession, SqlSessionTemplate.this.sqlSessionFactory)) {
           // force commit even on non-dirty sessions because some databases require

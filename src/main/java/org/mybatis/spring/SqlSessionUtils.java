@@ -71,6 +71,9 @@ public final class SqlSessionUtils {
   }
 
   /**
+   * 从Spring TransactionManager获取一个SqlSession，或根据需要创建一个新的SqlSession。
+   * 尝试从当前事务中获取SqlSession。如果没有，则创建一个新的。然后，如果Spring TX是活动的并且SpringManagedTransactionFactory被配置为一个事务管理器，则它将SqlSession与事务同步。
+   *
    * Gets an SqlSession from Spring Transaction Manager or creates a new one if needed. Tries to get a SqlSession out of
    * current transaction. If there is not any, it creates a new one. Then, it synchronizes the SqlSession with the
    * transaction if Spring TX is active and <code>SpringManagedTransactionFactory</code> is configured as a transaction
@@ -94,16 +97,21 @@ public final class SqlSessionUtils {
     notNull(sessionFactory, NO_SQL_SESSION_FACTORY_SPECIFIED);
     notNull(executorType, NO_EXECUTOR_TYPE_SPECIFIED);
 
+    // 从threadLocal中找
     SqlSessionHolder holder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(sessionFactory);
 
+    // 如果找到了则返回
     SqlSession session = sessionHolder(executorType, holder);
     if (session != null) {
       return session;
     }
 
+    // 如果没找到
     LOGGER.debug(() -> "Creating a new SqlSession");
+    // 生成DefaultSqlSession对象
     session = sessionFactory.openSession(executorType);
 
+    // 存在threadLocal中
     registerSessionHolder(sessionFactory, executorType, exceptionTranslator, session);
 
     return session;
@@ -128,6 +136,8 @@ public final class SqlSessionUtils {
   private static void registerSessionHolder(SqlSessionFactory sessionFactory, ExecutorType executorType,
       PersistenceExceptionTranslator exceptionTranslator, SqlSession session) {
     SqlSessionHolder holder;
+    // 判断是否开启了事物，也可以理解为方法上是否加了@Transactional注解
+    // 如果没加，则每次sqlSession调用都会生成新的DefaultSqlSession对象，导致一级缓存失效
     if (TransactionSynchronizationManager.isSynchronizationActive()) {
       Environment environment = sessionFactory.getConfiguration().getEnvironment();
 

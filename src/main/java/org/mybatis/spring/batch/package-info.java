@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 /**
+ * spring-batch批处理相关支持
  * Contains classes to facilitate the migration in Spring-Batch applications.
  */
 package org.mybatis.spring.batch;
